@@ -1,0 +1,20 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.danstoakes.myapplication.MainActivity">
+
+    <item
+        android:id="@+id/menu_main_sort_itm"
+        android:title="@string/menu_main_sort"
+        app:showAsAction="never">
+
+        <menu>
+
+        </menu>
+    </item>
+    <item
+        android:id="@+id/menu_main_create_itm"
+        android:title="@string/menu_main_create"
+        app:showAsAction="never">
+    </item>
+</menu>

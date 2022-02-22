@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="app/src/main/res/drawable/ic_baseline_arrow_forward_24.xml" value="0.11944444444444445" />
+        <entry key="app/src/main/res/drawable/ic_baseline_folder_48.xml" value="0.12222222222222222" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.17037037037037037" />
+        <entry key="app/src/main/res/layout/dialog_create.xml" value="0.375" />
+        <entry key="app/src/main/res/layout/dialog_rename.xml" value="0.2907692307692308" />
+        <entry key="app/src/main/res/layout/dialog_sort.xml" value="0.17037037037037037" />
+        <entry key="app/src/main/res/layout/dialog_storage_rationale.xml" value="0.2953125" />
+        <entry key="app/src/main/res/layout/fragment_files.xml" value="0.15833333333333333" />
+        <entry key="app/src/main/res/layout/fragment_hierarchy.xml" value="0.15833333333333333" />
+        <entry key="app/src/main/res/layout/item_file.xml" value="0.2953125" />
+        <entry key="app/src/main/res/layout/item_hierarchy.xml" value="0.165" />
+        <entry key="app/src/main/res/menu/menu_context.xml" value="0.2953125" />
+        <entry key="app/src/main/res/menu/menu_main.xml" value="0.2953125" />
+      </map>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/build/classes" />
+  </component>
+  <component name="ProjectType">
+    <option name="id" value="Android" />
+  </component>
+</project>

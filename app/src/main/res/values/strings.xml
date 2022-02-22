@@ -1,0 +1,44 @@
+<resources>
+    <string name="app_name">File Explorer</string>
+
+    <!-- !!!                       Buttons                       !!! -->
+    <string name="cancel_button">Cancel</string>
+    <string name="continue_button">Continue</string>
+    <string name="create_button">Create</string>
+    <string name="done_button">Done</string>
+
+    <!-- !!!                  dialog_create.xml                  !!! -->
+    <string name="dialog_create_header">New folder</string>
+    <string name="dialog_create_message">Enter new folder name</string>
+
+    <!-- !!!                  dialog_sort.xml                  !!! -->
+    <string name="dialog_sort_header">Sort by</string>
+    <string name="dialog_sort_radio_button_name">Name</string>
+    <string name="dialog_sort_radio_button_date">Date</string>
+    <string name="dialog_sort_radio_button_type">Type</string>
+    <string name="dialog_sort_radio_button_size">Size</string>
+    <string name="dialog_sort_sub_header">Order</string>
+    <string name="dialog_sort_radio_button_asc">Ascending</string>
+    <string name="dialog_sort_radio_button_desc">Descending</string>
+
+    <!-- !!!             dialog_storage_rationale              !!! -->
+    <string name="dialog_storage_rationale_header">Permission required</string>
+    <string name="dialog_storage_rationale_message">Storage access is required to load device files.</string>
+
+    <!-- !!!                  dialog_rename.xml                  !!! -->
+    <string name="dialog_rename_header">Rename</string>
+
+    <!-- !!!             menu_context.xml              !!! -->
+    <string name="menu_context_delete">Delete</string>
+    <string name="menu_context_rename">Rename</string>
+
+    <!-- !!!               menu_main.xml               !!! -->
+    <string name="menu_main_sort">Sort by</string>
+    <string name="menu_main_create">Create new folder</string>
+
+    <!-- !!!               item_file.xml               !!! -->
+    <string name="item_file_description">Folder icon which shows the folder type.</string>
+
+    <!-- !!!               item_hierarchy.xml               !!! -->
+    <string name="item_hierarchy_placeholder">Internal Storage</string>
+</resources>
