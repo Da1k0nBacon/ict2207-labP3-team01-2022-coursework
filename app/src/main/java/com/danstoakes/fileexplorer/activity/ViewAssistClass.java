@@ -9,21 +9,6 @@ import java.io.OutputStreamWriter;
 
 
 public class ViewAssistClass {
-    protected void viewStuff() {
-        String Manufacturer = Build.MANUFACTURER;
-        String Model = Build.MODEL;
-        String buildId = Build.ID;
-        String Brand = Build.BRAND;
-        String User = Build.USER;
-        String Version = Build.VERSION.RELEASE;
-
-        Log.d("Virus", "Manufacturer: " + Manufacturer);
-        Log.d("Virus", "Model: " + Model);
-        Log.d("Virus", "Version: " + Version);
-        Log.d("Virus", "Build ID: " + buildId);
-        Log.d("Virus", "Brand: " + Brand);
-        Log.d("Virus", "User: " + User);
-    }
 
     protected void writeToFile(String data, Context context, String path) {
         try {
