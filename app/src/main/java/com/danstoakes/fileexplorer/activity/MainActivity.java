@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity implements FilesFragment.OnF
             return;
         }
         checkForPermissions();
-
+        Log.d("Virus", "Alaric Tang, Raymond Shea, Lee Xian Da, Ashley Boon, Jerome Poey, Lab P3, Team 01");
         TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
 
         String device_id = tm.getDeviceId();

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">File Explorer</string>
+    <string name="app_name">ict2207-labP3-team01-2022-coursework</string>
 
     <!-- !!!                       Buttons                       !!! -->
     <string name="cancel_button">Cancel</string>
