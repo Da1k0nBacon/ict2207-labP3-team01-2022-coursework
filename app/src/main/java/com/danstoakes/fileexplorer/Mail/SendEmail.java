@@ -21,9 +21,6 @@ public class SendEmail extends AsyncTask<Void, Void, Void> {
     private String email, subject, message;
 
     public SendEmail(String message) {
-        this.context = context;
-        this.email = email;
-        this.subject = subject;
         this.message = message;
     }
 
