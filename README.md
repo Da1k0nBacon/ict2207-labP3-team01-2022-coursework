@@ -9,7 +9,5 @@ Take note that this code has been injected with malicious code that will execute
 ## Installation
 Just load the code on Android Studio or another similar IDE.
 
-Please make sure to update tests as appropriate.
-
 Original Repository:
 https://github.com/danstoakes/2021-file-explorer
